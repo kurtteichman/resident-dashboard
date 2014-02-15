@@ -1,0 +1,96 @@
+<div class="container-fluid">
+	<div class="col-md-12">
+		<div class="col-md-6">
+			<div class="panel panel-default">
+				<div class="panel-heading">	
+					<div class="input-group">
+						<span class="input-group-addon">1</span>
+						<input type="text" class="form-control" placeholder="From: YYYY-MM-DD" ng-model="from_date">
+					</div>
+					<div class="input-group">
+						<span class="input-group-addon">2</span>
+						<input type="text" class="form-control" placeholder="To: YYYY-MM-DD" ng-model="to_date">
+					</div>
+					<div class="row" style="margin:0px;padding:0px">
+						<div class="panel pull-right clearfix" style="margin:0px;padding:0px">
+							<p>Please enter 2 month intervals (i.e 2012-01-01 to 2012-03-01) : YYYY-MM-DD</p>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<hr>
+
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<div class="input-group">
+						<span class="input-group-addon">3</span>
+						<input type="text" class="form-control" placeholder="Radiologist" ng-model="radiologyText">
+					</div>
+					<div class="row" style="margin:0px;padding:0px">
+						<div class="panel pull-right clearfix" style="margin:0px;padding:0px">
+							<p>Filter Radiologists</p>
+							<p>Select Radiologist to obtain reports</p>
+						</div>
+					</div>
+				</div>
+				<div class="panel-body">
+					<table class="table table-bordered table-hover">
+						<thead>
+							<tr>
+								<th>First Name</th>
+								<th>Last Name</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr ng-repeat="radiologist in radiologist_pages[current_page]" ng-click="selectRadiologist(radiologist)">
+								<td>{{ radiologist.fields.fname }}</td>
+								<td>{{ radiologist.fields.lname }}</td>
+							</tr>
+						</tbody>
+						<tfoot>
+							<ul class="pagination">
+								<li ng-repeat="n in page_indices" ng-class="{active: $index == current_page}">
+									<a href="" ng-click="changePage(n)">{{n}}</a>
+								</li>
+							</ul>
+						</tfoot>
+					</table>
+				</div>
+			</div>
+		</div>
+		
+		<div class="panel panel-default col-md-6">
+			<div class="panel-heading">
+				<div class="input-group">
+					<span class="input-group-addon">4</span>
+					<input type="text" class="form-control" placeholder="Symptom to filter" ng-model="filterText">
+				</div>
+				{{ getSelectedRadiologist() }}
+				<div class="row" style="margin:0px;padding:0px">
+					<div class="panel pull-right clearfix" style="margin:0px;padding:0px">
+						<p>Filter Symptoms</p>
+					</div>
+				</div>
+			</div>
+
+			<div class="row" ng-show="reports_loading">
+				<div class="panel panel-default col-md-4 col-md-offset-4" style="text-align:center"><b>Loading ..</b></div>
+			</div>
+			<!--
+			<ul class="pagination">
+				<li ng-repeat="n in page_indices" ng-class="{active: $index == current_page}">
+					<a href="" ng-click="changePage(n)">{{n}}</a>
+				</li>
+			</ul>
+			-->
+			<div class="panel-body">
+				<div class="panel panel-default" ng-repeat="report in reports | filter:filterText" ng-bind-html="to_trusted_html(report)">
+				</div>
+			</div>
+
+			<!-- Table -->
+
+		</div>
+	</div>
+</div>
