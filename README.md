@@ -1,6 +1,6 @@
-##h2 NOTE: You must be on the Cornell VPN to utilize this web api
+#### NOTE: You must be on the Cornell VPN to utilize this web api
 
-##h2 WEB API:
+## WEB API:
 To obtain all of the radiologists, do a GET request to http://10.177.152.33/num_ext/resident_dash/getRadiologists
 
 i.e.
