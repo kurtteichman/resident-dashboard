@@ -1,3 +1,6 @@
+## Run Server:
+``` node server.js ```
+
 #### NOTE: You must be on the Cornell VPN to utilize this web api
 
 ## WEB API:
