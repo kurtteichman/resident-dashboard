@@ -12,6 +12,7 @@ $http({method: 'GET', timeout: 30000, url: 'http://10.177.152.33/num_ext/residen
 Radiologist data will come in an array of objects pertaining to a radiologist
 The object will be of the form:
 
+```
 [
   {
     // primary key
@@ -27,6 +28,7 @@ The object will be of the form:
   ...
   }
 ]
+```
 
 To obtain all of the orders associated with a radiologist, you do a POST request to http://10.177.152.33/num_ext/resident_dash/getOrders
 
