@@ -65,3 +65,5 @@ The returned array will contain objects of the form:
   ...
 ]
 ```
+
+The report's newlines are denoted with '|' which should be processed appropriately by the user. An example can be seen app.js.

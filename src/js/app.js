@@ -617,6 +617,12 @@ angular.module('app',['ngRoute','ngSanitize'])
 		 .success(function(data) {
 		 	$scope.reports_loading = false;
 		 	$scope.reports = data;
+		 	$scope.reports = $scope.reports.map(function(report) {
+		 		// adding in some html for display purposes
+		 		// raw data will have '|' instead of the line break, '<br/>'
+		 		return report.substring(1).replace(/\|/gi,'<br/>');
+		 	});
+
 		 })
 		 .error(function(data) {
 		 	$scope.reports_loading = false;
