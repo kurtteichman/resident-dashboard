@@ -50,7 +50,7 @@ $http({method: 'POST', timeout: 30000, url: 'http://10.177.152.33/num_ext/reside
     from_date:<string>,
     //  "YYYY-MM-DD" --> 2014-02-01
     to_date:<string>,
-    radiologist_pk:int
+    radiologist_pk:<int>
   }
 })
 .success(function(reports_data) {
