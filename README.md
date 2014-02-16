@@ -4,12 +4,11 @@
 #### NOTE: You must be on the Cornell VPN to utilize this web api
 
 ## WEB API:
-To obtain all of the radiologists, do a GET request to http://127.0.0.1/num_ext/resident_dash/getRadiologists.
-127.0.0.1 is a placeholder ipaddress
+To obtain all of the radiologists, do a GET request to http://[IP]/num_ext/resident_dash/getRadiologists.
 
 i.e.
 ```
-$http({method: 'GET', timeout: 30000, url: 'http://<redactied>/num_ext/resident_dash/getRadiologists'})
+$http({method: 'GET', timeout: 30000, url: 'http://[IP]/num_ext/resident_dash/getRadiologists'})
 .success(function(radiologist_data, status, headers, config) {
     $scope.radiologists = radiolgist_data;
 });
@@ -37,8 +36,7 @@ The array object will be of the form:
 ]
 ```
 
-To obtain all of the orders associated with a radiologist, you do a POST request to http://127.0.0.1/num_ext/resident_dash/getOrders.
-127.0.0.1 is a placeholder ipaddress
+To obtain all of the orders associated with a radiologist, you do a POST request to http://[IP]/num_ext/resident_dash/getOrders.
 
 The API requires that you give a **from_date** and a **to_date** to specify a time period for the report query.
 
@@ -46,7 +44,7 @@ You also need to provide the **primary key** of the radiologist associated with 
 
 i.e.
 ```
-$http({method: 'POST', timeout: 30000, url: 'http://<redacted>/num_ext/resident_dash/getOrders',
+$http({method: 'POST', timeout: 30000, url: 'http://[IP]/num_ext/resident_dash/getOrders',
   data:{
     //  "YYYY-MM-DD" --> 2013-12-01
     from_date:<string>,
