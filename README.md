@@ -4,11 +4,11 @@
 #### NOTE: You must be on the Cornell VPN to utilize this web api
 
 ## WEB API:
-To obtain all of the radiologists, do a GET request to http://10.177.152.33/num_ext/resident_dash/getRadiologists
+To obtain all of the radiologists, do a GET request to http://<redacted>/num_ext/resident_dash/getRadiologists
 
 i.e.
 ```
-$http({method: 'GET', timeout: 30000, url: 'http://10.177.152.33/num_ext/resident_dash/getRadiologists'})
+$http({method: 'GET', timeout: 30000, url: 'http://<redactied>/num_ext/resident_dash/getRadiologists'})
 .success(function(radiologist_data, status, headers, config) {
     $scope.radiologists = radiolgist_data;
 });
@@ -44,7 +44,7 @@ You also need to provide the **primary key** of the radiologist associated with 
 
 i.e.
 ```
-$http({method: 'POST', timeout: 30000, url: 'http://10.177.152.33/num_ext/resident_dash/getOrders',
+$http({method: 'POST', timeout: 30000, url: 'http://<redacted>/num_ext/resident_dash/getOrders',
   data:{
     //  "YYYY-MM-DD" --> 2013-12-01
     from_date:<string>,
@@ -63,7 +63,7 @@ The returned array will contain objects of the form:
 
 ```
 [
-  // report string containing embedded html
+  // report string
   <string>,
   ...
 ]
