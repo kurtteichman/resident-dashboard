@@ -4,7 +4,8 @@
 #### NOTE: You must be on the Cornell VPN to utilize this web api
 
 ## WEB API:
-To obtain all of the radiologists, do a GET request to http://<redacted>/num_ext/resident_dash/getRadiologists
+To obtain all of the radiologists, do a GET request to http://127.0.0.1/num_ext/resident_dash/getRadiologists.
+127.0.0.1 is a placeholder ipaddress
 
 i.e.
 ```
@@ -36,7 +37,8 @@ The array object will be of the form:
 ]
 ```
 
-To obtain all of the orders associated with a radiologist, you do a POST request to http://10.177.152.33/num_ext/resident_dash/getOrders
+To obtain all of the orders associated with a radiologist, you do a POST request to http://127.0.0.1/num_ext/resident_dash/getOrders.
+127.0.0.1 is a placeholder ipaddress
 
 The API requires that you give a **from_date** and a **to_date** to specify a time period for the report query.
 
