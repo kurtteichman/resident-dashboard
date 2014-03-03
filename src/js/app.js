@@ -69,6 +69,7 @@ angular.module('app',['ngRoute','ngSanitize'])
 	return {
 		templateUrl: 'templates/navbar.tpl.html',
 		restrict: 'E',
+		require:'data',
 		replace:true,
 		scope:{},
 		controller: function($scope, $element, $attrs, $location) {
@@ -95,25 +96,24 @@ angular.module('app',['ngRoute','ngSanitize'])
 		templateUrl:'templates/barchart.tpl.html',
 		restrict: 'E',
 		replace: true,
-		scope: true,
+		scope: {
+			'data' : '=data'
+		},
+		controller : function($scope, $element) {
+			
+		},
 		link : function(scope, element, attrs) {
-
-			/*
-			var margin = {top: 20, right: 20, bottom: 30, left: 40},
-			width = 600 - margin.left - margin.right,
-			height = 300 - margin.top - margin.bottom;
-			*/
+			console.log(attrs);
 
 			var BarChart = {
 				draw: function(id,d,options) {
-
 					var cfg = {
 						margin :{top: 20, right: 20, bottom: 30, left: 40},
 						width : 600 - margin.left - margin.right,
 						height :300 - margin.top - margin.bottom
 					};
 
-					var ymax = d3.max(data, function(d) { return +d.frequency});
+					var ymax = d3.max(scope.data, function(d) { return +d.frequency});
 
 					d3.select(id).select("svg").remove();
 
@@ -137,7 +137,7 @@ angular.module('app',['ngRoute','ngSanitize'])
 						.range([cfg.height,0]);
 						/*.range([height, 0]);*/
 
-						x.domain(data.map(function(d) { return d.modality; }));
+						x.domain(scope.data.map(function(d) { return d.modality; }));
 						//y.domain(data.map(function(d) { return d.frequency; }));
 
 						var xAxis = d3.svg.axis()
@@ -182,6 +182,12 @@ angular.module('app',['ngRoute','ngSanitize'])
 				}
 			}
 
+			/*
+			scope.data = scope.$eval(attrs.data);
+			*/
+			console.log(scope.data);
+
+			/*
 			var data = [
 				{modality:'CT', frequency:5},
 				{modality:'MR', frequency:5},
@@ -190,6 +196,7 @@ angular.module('app',['ngRoute','ngSanitize'])
 				{modality:'Sono', frequency:9},
 				{modality:'DEXA', frequency:100}
 			];
+			*/
 
 			var margin = {top: 20, right: 20, bottom: 30, left: 60};
 
@@ -199,22 +206,31 @@ angular.module('app',['ngRoute','ngSanitize'])
 				height : 300 - margin.top - margin.bottom
 			}
 
-			BarChart.draw(element[0].children[1],data,options);
+			BarChart.draw(element[0].children[1],scope.data,options);
 
 			scope.drawBarChart= function() {
 				var output = [];
 				//var output = [user_data];
 
-				for (var i = 0; i < data.length; i++) {
-					output.push({modality:data[i].modality,frequency:Math.floor(Math.random() * 100 + 1)});
+				for (var i = 0; i < scope.data.length; i++) {
+					output.push({modality:scope.data[i].modality,frequency:Math.floor(Math.random() * 100 + 1)});
 				}
 
 				console.log(output);
 				console.log('in draw bar chart');
 
-				scope.data = output;
+				// do not overwrite scope.data
+				// just copy
+				for (var i = 0; i < scope.data.length; i++) {
+					scope.data[i] = output[i];
+				}
+
 				BarChart.draw(element[0].children[1],scope.data,options);
 			}
+
+			scope.$on('copyData', function(misc) {
+				BarChart.draw(element[0].children[1],scope.data,options);
+			});
 		}
 	};
 })
@@ -232,7 +248,6 @@ angular.module('app',['ngRoute','ngSanitize'])
 				levels: 6,
 				ExtraWidthX: 300
 			}
-
 
 			var RadarChart = {
 		  		draw: function(id, d, options){
@@ -493,7 +508,6 @@ angular.module('app',['ngRoute','ngSanitize'])
 						.attr("font-size", "11px")
 						.attr("fill", "#737373")
 						.text(function(d) { return d; });	
-
 					}
 				}
 
@@ -546,11 +560,6 @@ angular.module('app',['ngRoute','ngSanitize'])
 				];
 				*/
 
-				console.log(element);
-				console.log(element[0])
-
-				
-
 				RadarChart.draw(element[0].children[1].children[0],labels,mycfg);
 
 				scope.drawRadarChart = function() {
@@ -571,10 +580,46 @@ angular.module('app',['ngRoute','ngSanitize'])
 			}
 		}
 })
-.controller('dashController', ['$scope','$http', function($scope,$http) {
+.controller('dashController', ['$scope','$http','$timeout', function($scope,$http,$timeout) {
+	var generateRandomBarChart = function(data) {
+		var output = [];
 
-}])
-.controller('dashController2', ['$scope','$http', function($scope,$http) {
+		for (var i = 0; i < data.length; i++) {
+			output.push({modality:data[i].modality,frequency:Math.floor(Math.random() * 100 + 1)});
+		}
+
+		return output;
+	};
+
+	$scope.right_bar_chart_data = [
+		{modality:'CT', frequency:5},
+		{modality:'MR', frequency:5},
+		{modality:'CR', frequency:7},
+		{modality:'Nucs', frequency:8},
+		{modality:'Sono', frequency:9},
+		{modality:'DEXA', frequency:100}
+	];
+
+	// example of how to update the chart
+	$timeout(function() {
+		var output = generateRandomBarChart($scope.right_bar_chart_data);
+		// copying output values to right_bar_chart, NOTE DON'T OVERWRITE THIS REFERENCE
+		// or the directive will not be updated after the $scope.$broadcast call
+		for (var i = 0; i < output.length; i++) {
+			$scope.right_bar_chart_data[i] = output[i];
+		}
+		//$scope.right_bar_chart_data = [];
+		$scope.$broadcast('copyData',[]);
+	}, 5000);
+
+	$scope.left_bar_chart_data = [
+		{modality:'CT', frequency:5},
+		{modality:'MR', frequency:5},
+		{modality:'CR', frequency:7},
+		{modality:'Nucs', frequency:8},
+		{modality:'Sono', frequency:9},
+		{modality:'DEXA', frequency:100}
+	];
 
 }])
 .controller('mainController', ['$scope','$http','$sce','$timeout', function($scope,$http,$sce,$timeout) {
