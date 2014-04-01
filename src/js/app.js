@@ -6,7 +6,7 @@ angular.module('app',['ngRoute','ngSanitize'])
 		templateUrl: 'views/dashboard.html',
 		controller: 'dashController'
 	})
-	.when('/', {
+	.when('/data', {
 		templateUrl: 'views/datatool.html',
 		controller: 'mainController'
 	});
@@ -642,6 +642,8 @@ angular.module('app',['ngRoute','ngSanitize'])
 	success(function(data, status, headers, config) {
 		$scope.radiologists = data;
 		paginate($scope.radiologists);
+		$scope.radiologyText = "Shlomo";
+		//$timeout(function() {$scope.radiologyText = "Shlomo";},3000);
 	}).
 	error(function(data, status, headers, config) {
 		// NOOP
@@ -880,6 +882,7 @@ angular.module('app',['ngRoute','ngSanitize'])
 	success(function(data, status, headers, config) {
 		$scope.radiologists = data;
 		paginate($scope.radiologists);
+		$scope.radiologyText = "Shlomo";
 	}).
 	error(function(data, status, headers, config) {
 		// NOOP
