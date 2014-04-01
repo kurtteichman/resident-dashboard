@@ -581,6 +581,18 @@ angular.module('app',['ngRoute','ngSanitize'])
 		}
 })
 .controller('dashController', ['$scope','$http','$timeout', function($scope,$http,$timeout) {
+	$scope.radiologists = [];
+	$scope.current_page = 0;
+	$scope.page_indices = [];
+	$scope.radiologist_pages = [];
+	$scope.selected_radiologist = {fields:{fname:"",lname:""}} ;
+
+	$scope.to_date   = "2014-02-01";
+	$scope.from_date = "2013-12-01";
+
+	$scope.reports = [];
+	$scope.reports_loading = false;
+
 	var generateRandomBarChart = function(data) {
 		var output = [];
 
@@ -601,16 +613,21 @@ angular.module('app',['ngRoute','ngSanitize'])
 	];
 
 	// example of how to update the chart
+	/*
 	$timeout(function() {
-		var output = generateRandomBarChart($scope.right_bar_chart_data);
+		//$scope.left_bar_chart_data.length = 0;
+		var output = generateRandomBarChart($scope.left_bar_chart_data);
+		$scope.left_bar_chart_data.splice(0,5);
+		$scope.$broadcast('copyData',[]);
 		// copying output values to right_bar_chart, NOTE DON'T OVERWRITE THIS REFERENCE
 		// or the directive will not be updated after the $scope.$broadcast call
 		for (var i = 0; i < output.length; i++) {
-			$scope.right_bar_chart_data[i] = output[i];
+			$scope.left_bar_chart_data[i] = output[i];
 		}
 		//$scope.right_bar_chart_data = [];
 		$scope.$broadcast('copyData',[]);
 	}, 5000);
+*/
 
 	$scope.left_bar_chart_data = [
 		{modality:'CT', frequency:5},
@@ -621,6 +638,132 @@ angular.module('app',['ngRoute','ngSanitize'])
 		{modality:'DEXA', frequency:100}
 	];
 
+	$http({method: 'GET', timeout: 30000, url: 'http://ravid.nyp.org/num_ext/resident_dash/getRadiologists'}).
+	success(function(data, status, headers, config) {
+		$scope.radiologists = data;
+		paginate($scope.radiologists);
+	}).
+	error(function(data, status, headers, config) {
+		// NOOP
+	});
+
+	$scope.changePage = function (page_number) {
+		$scope.current_page = page_number;
+	}
+
+	$scope.getSelectedRadiologist = function() {
+		return $scope.selected_radiologist.fields.fname + " " + $scope.selected_radiologist.fields.lname;
+	}
+
+	$scope.selectRadiologist = function(radiologist) {
+		$scope.selected_radiologist = radiologist;
+		$scope.reports_loading = true;
+		$scope.reports = [];
+
+		 $http({method: 'POST', timeout: 300000, url: 'http://ravid.nyp.org/num_ext/resident_dash/getOrders',
+		 	data:{
+		 		from_date:$scope.from_date,
+		 		to_date:$scope.to_date,
+		 		radiologist_pk:radiologist.pk
+		 	}
+		 })
+		 .success(function(data) {
+		 	$scope.reports_loading = false;
+		 	$scope.reports = data;
+		 	console.log($scope.reports);
+
+		 	var histogram = {};
+		 	var report_fields = null;
+
+		 	for (var i = 0; i < $scope.reports.length; i++) {
+		 		report_fields = $scope.reports[i].fields;
+		 		if (histogram[report_fields.modality]) {
+			 		histogram[report_fields.modality] += 1;
+			 	} else {
+			 		histogram[report_fields.modality] = 1;
+			 	}
+		 	}
+
+	 		$scope.left_bar_chart_data.splice(0,$scope.left_bar_chart_data.length);
+	 		var temp_object = null;
+		 	for (key in histogram) {
+		 		temp_object = {modality:'',frequency:''};
+		 		temp_object['modality'] = key;
+		 		temp_object['frequency'] = histogram[key];
+		 		$scope.left_bar_chart_data.push(temp_object);
+		 	}
+
+		 	$scope.$broadcast('copyData',[]);
+		 	console.log('histogram');
+		 	console.log(histogram);
+		 	/*
+		 	$scope.reports = $scope.reports.map(function(report) {
+		 		// adding in some html for display purposes
+		 		// raw data will have '|' instead of the line break, '<br/>'
+		 		return report.report.substring(1).replace(/\|/gi,'<br/>');
+		 	});
+			*/
+
+		 })
+		 .error(function(data) {
+		 	$scope.reports_loading = false;
+		 	console.log(data);
+		 });
+
+		 // hack to make dropped request retry themselves
+		 /*
+		 $timeout(function() {
+		 	if ($scope.reports.length == 0) {
+			 	$scope.selectRadiologist(radiologist);
+			}
+		 },7000);
+*/
+	}
+
+	var paginate = function(radiologists) {
+		var page_count = Math.ceil(radiologists.length / 10);
+		var counter = -1;   
+		$scope.radiologist_pages = [];
+		$scope.page_indices      = [];
+		$scope.current_page      = 0;
+
+		var current_radiologist = null;
+
+		for (var i = 0; i < radiologists.length; i++) {
+			current_radiologist = radiologists[i];
+			if (i % 10 == 0) {
+				counter++;
+				$scope.radiologist_pages.push([]);
+				$scope.page_indices.push(counter);
+			}
+			$scope.radiologist_pages[counter].push(current_radiologist);
+		}
+	}
+
+	$scope.$watch('radiologyText', function(data) {
+		var current_radiologist = null;
+		var fname = null;
+		var lname = null;
+		var current_data = (data) ? data.toLowerCase() : "";
+
+		var filtered_radiologists = [];
+
+		for (var i = 0; i < $scope.radiologists.length; i++) {
+			current_radiologist = $scope.radiologists[i];
+			try {
+				fname = current_radiologist.fields.fname.toLowerCase();
+				lname = current_radiologist.fields.lname.toLowerCase();
+			} catch (err) {
+				// NOOP
+			}
+
+			if (current_data == "" || fname.indexOf(current_data) > -1 || lname.indexOf(current_data) > -1) {
+				filtered_radiologists.push(current_radiologist);
+			}
+		}
+
+		paginate(filtered_radiologists);
+	});
 }])
 .controller('mainController', ['$scope','$http','$sce','$timeout', function($scope,$http,$sce,$timeout) {
 	$scope.radiologists = [];
@@ -635,8 +778,9 @@ angular.module('app',['ngRoute','ngSanitize'])
 	$scope.reports = [];
 	$scope.reports_loading = false;
 
-	$scope.to_trusted_html = function(html_code) {
-		return $sce.trustAsHtml(html_code);
+	$scope.to_trusted_html = function(report) {
+		var modified_report_html = report.fields.report.substring(1).replace(/\|/gi,'<br/>');
+		return $sce.trustAsHtml(modified_report_html);
 	}
 
 	$scope.changePage = function (page_number) {
@@ -652,7 +796,7 @@ angular.module('app',['ngRoute','ngSanitize'])
 		$scope.reports_loading = true;
 		$scope.reports = [];
 
-		 $http({method: 'POST', timeout: 30000, url: 'http://10.177.152.33/num_ext/resident_dash/getOrders',
+		 $http({method: 'POST', timeout: 30000, url: 'http://ravid.nyp.org/num_ext/resident_dash/getOrders',
 		 	data:{
 		 		from_date:$scope.from_date,
 		 		to_date:$scope.to_date,
@@ -662,11 +806,14 @@ angular.module('app',['ngRoute','ngSanitize'])
 		 .success(function(data) {
 		 	$scope.reports_loading = false;
 		 	$scope.reports = data;
+		 	console.log($scope.reports);
+		 	/*
 		 	$scope.reports = $scope.reports.map(function(report) {
 		 		// adding in some html for display purposes
 		 		// raw data will have '|' instead of the line break, '<br/>'
-		 		return report.substring(1).replace(/\|/gi,'<br/>');
+		 		return report.report.substring(1).replace(/\|/gi,'<br/>');
 		 	});
+			*/
 
 		 })
 		 .error(function(data) {
@@ -729,7 +876,7 @@ angular.module('app',['ngRoute','ngSanitize'])
 		paginate(filtered_radiologists);
 	});
 
-	$http({method: 'GET', timeout: 30000, url: 'http://10.177.152.33/num_ext/resident_dash/getRadiologists'}).
+	$http({method: 'GET', timeout: 30000, url: 'http://ravid.nyp.org/num_ext/resident_dash/getRadiologists'}).
 	success(function(data, status, headers, config) {
 		$scope.radiologists = data;
 		paginate($scope.radiologists);
