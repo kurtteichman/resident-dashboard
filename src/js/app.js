@@ -97,7 +97,8 @@ angular.module('app',['ngRoute','ngSanitize'])
 		restrict: 'E',
 		replace: true,
 		scope: {
-			'data' : '=data'
+			'residentdata' : '=residentdata'
+			//'baselinedata' : '=baselinedata'
 		},
 		controller : function($scope, $element) {
 			
@@ -113,7 +114,7 @@ angular.module('app',['ngRoute','ngSanitize'])
 						height :300 - margin.top - margin.bottom
 					};
 
-					var ymax = d3.max(scope.data, function(d) { return +d.frequency});
+					var ymax = d3.max(d, function(d) { return +d.frequency});
 
 					d3.select(id).select("svg").remove();
 
@@ -131,13 +132,13 @@ angular.module('app',['ngRoute','ngSanitize'])
 
 						var x = d3.scale.ordinal()
 			    		.rangeRoundBands([0, cfg.width], .1);
+						x.domain(d.map(function(d) { return d.modality; }));
 
 						var y = d3.scale.linear()
 						.domain([0,ymax])
 						.range([cfg.height,0]);
 						/*.range([height, 0]);*/
 
-						x.domain(scope.data.map(function(d) { return d.modality; }));
 						//y.domain(data.map(function(d) { return d.frequency; }));
 
 						var xAxis = d3.svg.axis()
@@ -149,11 +150,15 @@ angular.module('app',['ngRoute','ngSanitize'])
 						.ticks(10)
 						.orient("left");
 
+
 						var svg = d3.select(id).append("svg")
 						.attr("width", cfg.width + cfg.margin.left + cfg.margin.right)
 						.attr("height", cfg.height + cfg.margin.top + cfg.margin.bottom)
 						.append("g")
 						.attr("transform", "translate(" + cfg.margin.left + "," + cfg.margin.top + ")");
+
+						var line_tooltip = null;
+						var bar_tooltip = null;
 
 						svg.append("g")
 							.attr("class", "x axis")
@@ -172,21 +177,151 @@ angular.module('app',['ngRoute','ngSanitize'])
 
 						svg.selectAll(".bar")
 							.data(d)
-							.enter().append("rect")
+							.enter()
+							.append("rect")
 							.attr("class","bar")
 							.attr("x", function(d) { return x(d.modality); })
 							.attr("y", function(d) { return y(d.frequency); })
 							.attr("width", x.rangeBand())
-							.attr("height", function(d) { return cfg.height - y(d.frequency); });
+							.attr("height", function(d) { return cfg.height - y(d.frequency); })
+							/*
+							.append("text")
+							.attr("x", function(d) { return x(d.modality); })
+							.attr("y", function(d) { return y(d.frequency); })
+							.text(function(d) { return String(d.frequency); })
+							.style('opacity', 1)
+							.style("fill", "white");
+							*/
+							.on("mouseover", function(d){
+								bar_tooltip
+								.style('opacity', 1);	
+							})
+							.on("mousemove", function(d) {
+								var coordinates = d3.mouse(this);
+								bar_tooltip
+								.text(d.frequency)
+								.attr('x', coordinates[0] + 10)
+								.attr('y', coordinates[1] - 10);
+							})
+							.on("mouseout", function(d) {
+								bar_tooltip
+								.style('opacity', 0);
+							});
+
+
+					    /*
+					    var datum = [
+							{modality:'CT', frequency:10},
+							{modality:'MR', frequency:20},
+							{modality:'CR', frequency:40},
+							{modality:'Nucs', frequency:30},
+							{modality:'Sono', frequency:20},
+							{modality:'DEXA', frequency:10}
+						];
+						*/
+						var line = d3.svg.line()
+					    .x(function(d) { return x(d.modality); })
+					    .y(function(d) { return y(d.baseline_frequency); });
+
+						svg.append("svg:path")
+						.attr("d", line(d))
+						.attr("transform","translate(" + String(x.rangeBand()/2) + ",0)")
+						.style("stroke","black")
+						.style("stroke-width","1")
+						.style("fill","none")
+
+
+						var div = svg.append("div")   
+					    .attr("class", "tooltip")               
+					    .style("opacity", 0);
+
+						svg.selectAll("dot")    
+						.data(d)         
+						.enter().append("circle")                               
+						.attr("r", 5)       
+						.attr("cx", function(d) { return x(d.modality); })       
+						.attr("cy", function(d) { return y(d.baseline_frequency); })     
+						.attr("fill", '#ff7f0e')
+						.attr("transform","translate(" + String(x.rangeBand()/2) + ",0)")
+						.on("mouseover", function(d) {      
+							newX =  parseFloat(d3.select(this).attr('cx'));
+							newY =  parseFloat(d3.select(this).attr('cy'));
+
+							line_tooltip
+							.attr('x', newX)
+							.attr('y', newY)
+							.attr("transform","translate(" + String(x.rangeBand()/2) + ",-10)")
+							.text(String(d.baseline_frequency))
+							//.text(Format(d.frequency))
+							.transition(200)
+							.style('opacity', 1);
+
+						})
+						.on('mouseout', function(){
+							line_tooltip
+							.transition(200)
+							.style('opacity', 0);
+						});
+
+						var text = svg.append("text")
+						.attr("class", "title")
+						.attr("x", 450)
+						.attr("y", 10)
+						.attr("font-size", "12px")
+						.attr("fill", "#404040")
+						.text("Order frequency");
+
+						line_tooltip = svg.append('text')
+						.style('opacity', 0)
+						.style('font-family', 'sans-serif')
+						.style('font-size', '13px');
+
+						bar_tooltip = svg.append('text')
+						.style('opacity', 0)
+						.style('font-family', 'sans-serif')
+						.style('font-size', '13px');
+
+						var w = 500,h = 500;
+						var colorscale = d3.scale.category10();
+
+						var legend = svg.append("g")
+						.attr("class", "legend")
+						.attr("height", 100)
+						.attr("width", 200)
+						.attr('transform', 'translate(90,20)');
+						var LegendOptions = ["Resident","Baseline"];
+						//Create colour squares
+						legend.selectAll('rect')
+						.data(LegendOptions)
+						.enter()
+						.append("rect")
+						.attr("x",w - 125)
+						.attr("y", function(d, i){ return i * 20;})
+						.attr("width", 10)
+						.attr("height", 10)
+						.style("fill", function(d, i){ 
+							console.log(colorscale(i));
+							return colorscale(i);
+						});
+						//Create text next to squares
+						legend.selectAll('text')
+						.data(LegendOptions)
+						.enter()
+						.append("text")
+						.attr("x",w - 112) 
+						.attr("y", function(d, i){ return i * 20 + 9;})
+						.attr("font-size", "11px")
+						.attr("fill", "#737373")
+						.text(function(d) { return d; });	
 					}
 				}
 			}
 
+
+
 			/*
 			scope.data = scope.$eval(attrs.data);
 			*/
-			console.log(scope.data);
-
 			/*
 			var data = [
 				{modality:'CT', frequency:5},
@@ -206,30 +341,36 @@ angular.module('app',['ngRoute','ngSanitize'])
 				height : 300 - margin.top - margin.bottom
 			}
 
-			BarChart.draw(element[0].children[1],scope.data,options);
+			console.log('residentdata');
+			console.log(scope.residentdata);
+			BarChart.draw(element[0].children[1],scope.residentdata,options);
 
 			scope.drawBarChart= function() {
-				var output = [];
+				var resident_output = [];
+				var baseline_output = [];
 				//var output = [user_data];
 
-				for (var i = 0; i < scope.data.length; i++) {
-					output.push({modality:scope.data[i].modality,frequency:Math.floor(Math.random() * 100 + 1)});
+				for (var i = 0; i < scope.residentdata.length; i++) {
+					resident_output.push({
+						modality:scope.residentdata[i].modality,
+						frequency:Math.floor(Math.random() * 100 + 1),
+						baseline_frequency:Math.floor(Math.random() * 10 + 1)
+					});
+					//baseline_output.push({modality:scope.residentdata[i].modality,frequency:Math.floor(Math.random() * 20 + 1)});
 				}
-
-				console.log(output);
-				console.log('in draw bar chart');
 
 				// do not overwrite scope.data
 				// just copy
-				for (var i = 0; i < scope.data.length; i++) {
-					scope.data[i] = output[i];
+				for (var i = 0; i < scope.residentdata.length; i++) {
+					scope.residentdata[i] = resident_output[i];
+					//scope.baselinedata[i] = baseline_output[i];
 				}
 
-				BarChart.draw(element[0].children[1],scope.data,options);
+				BarChart.draw(element[0].children[1],scope.residentdata,options);
 			}
 
 			scope.$on('copyData', function(misc) {
-				BarChart.draw(element[0].children[1],scope.data,options);
+				BarChart.draw(element[0].children[1],scope.residentdata,options);
 			});
 		}
 	};
@@ -349,7 +490,7 @@ angular.module('app',['ngRoute','ngSanitize'])
 						.style("stroke-width", "1px");
 
 						axis.append("text")
-						.attr("class", "legend")
+						.attr("class", "/LegendOptions")
 						.text(function(d){return d})
 						.style("font-family", "sans-serif")
 						.style("font-size", "11px")
@@ -593,50 +734,29 @@ angular.module('app',['ngRoute','ngSanitize'])
 	$scope.reports = [];
 	$scope.reports_loading = false;
 
-	var generateRandomBarChart = function(data) {
-		var output = [];
-
-		for (var i = 0; i < data.length; i++) {
-			output.push({modality:data[i].modality,frequency:Math.floor(Math.random() * 100 + 1)});
-		}
-
-		return output;
-	};
-
-	$scope.right_bar_chart_data = [
-		{modality:'CT', frequency:5},
-		{modality:'MR', frequency:5},
-		{modality:'CR', frequency:7},
-		{modality:'Nucs', frequency:8},
-		{modality:'Sono', frequency:9},
-		{modality:'DEXA', frequency:100}
-	];
-
-	// example of how to update the chart
-	/*
-	$timeout(function() {
-		//$scope.left_bar_chart_data.length = 0;
-		var output = generateRandomBarChart($scope.left_bar_chart_data);
-		$scope.left_bar_chart_data.splice(0,5);
-		$scope.$broadcast('copyData',[]);
-		// copying output values to right_bar_chart, NOTE DON'T OVERWRITE THIS REFERENCE
-		// or the directive will not be updated after the $scope.$broadcast call
-		for (var i = 0; i < output.length; i++) {
-			$scope.left_bar_chart_data[i] = output[i];
-		}
-		//$scope.right_bar_chart_data = [];
-		$scope.$broadcast('copyData',[]);
-	}, 5000);
-*/
-
 	$scope.left_bar_chart_data = [
-		{modality:'CT', frequency:5},
-		{modality:'MR', frequency:5},
-		{modality:'CR', frequency:7},
-		{modality:'Nucs', frequency:8},
-		{modality:'Sono', frequency:9},
-		{modality:'DEXA', frequency:100}
+		{modality:'CT', frequency:5, baseline_frequency:10},
+		{modality:'MR', frequency:5, baseline_frequency:10},
+		{modality:'CR', frequency:7, baseline_frequency:10},
+		{modality:'Nucs', frequency:8, baseline_frequency:10},
+		{modality:'Sono', frequency:9, baseline_frequency:10},
+		{modality:'DEXA', frequency:100, baseline_frequency:10}
 	];
+
+	$scope.updateBarChart = function() {
+		// verify baseline values
+		var temp_item = null;
+		for (var i = 0; i < $scope.left_bar_chart_data.length; i++) {
+			temp_item = $scope.left_bar_chart_data[i];
+			if (temp_item.baseline_frequency == "") {
+				temp_item.baseline_frequency = 0;
+			}
+		}
+
+	 	$scope.$broadcast('copyData',[]);
+	}
+
+
 
 	$http({method: 'GET', timeout: 30000, url: 'http://ravid.nyp.org/num_ext/resident_dash/getRadiologists'}).
 	success(function(data, status, headers, config) {
@@ -692,19 +812,13 @@ angular.module('app',['ngRoute','ngSanitize'])
 		 		temp_object = {modality:'',frequency:''};
 		 		temp_object['modality'] = key;
 		 		temp_object['frequency'] = histogram[key];
+		 		// default baseline setting
+		 		temp_object['baseline_frequency'] = 10;
 		 		$scope.left_bar_chart_data.push(temp_object);
 		 	}
 
+
 		 	$scope.$broadcast('copyData',[]);
-		 	console.log('histogram');
-		 	console.log(histogram);
-		 	/*
-		 	$scope.reports = $scope.reports.map(function(report) {
-		 		// adding in some html for display purposes
-		 		// raw data will have '|' instead of the line break, '<br/>'
-		 		return report.report.substring(1).replace(/\|/gi,'<br/>');
-		 	});
-			*/
 
 		 })
 		 .error(function(data) {

@@ -10,9 +10,27 @@
 			<div class="panel panel-default">
 				<div class="panel-heading">bar chart</div>
 				<div class="panel-body">
-					<dash-Bar-Chart data="left_bar_chart_data"></dash-Bar-Chart>
+					<dash-Bar-Chart residentdata="left_bar_chart_data" baselinedata="left_bar_chart_baseline_data"></dash-Bar-Chart>
 				</div>
 			</div>
+
+			<table class="table table-bordered table-hover">
+				<thead>
+					<tr>
+						<th>Modality</th>
+						<th>Baseline Quota</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr ng-repeat="data in left_bar_chart_data">
+						<td>{{ data.modality }}</td>
+						<td><input type="text" class="form-control" placeholder="From: YYYY-MM-DD" ng-model="data.baseline_frequency"></td>
+					</tr>
+				</tbody>
+
+			</table>
+			<button ng-click="updateBarChart()" class="btn btn-default">Update Bar Chart</button>
+
 		</div>
 		<div class="col-md-6">
 			<div class="panel panel-default">
