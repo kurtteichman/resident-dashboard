@@ -19,12 +19,17 @@
 					<tr>
 						<th>Modality</th>
 						<th>Baseline Quota</th>
+						<th>Add/Remove</th>
 					</tr>
 				</thead>
 				<tbody>
 					<tr ng-repeat="data in left_bar_chart_data">
-						<td>{{ data.modality }}</td>
+						<td><input type="text" class="form-control" placeholder="Modality" ng-model="data.modality"></td>
 						<td><input type="text" class="form-control" placeholder="From: YYYY-MM-DD" ng-model="data.baseline_frequency"></td>
+						<td>
+							<button ng-click="addResidentDataItem($index)" class="btn btn-default">+</button>
+							<button ng-click="removeResidentDataItem($index)" class="btn btn-default">-</button>
+						</td>
 					</tr>
 				</tbody>
 

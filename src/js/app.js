@@ -114,7 +114,7 @@ angular.module('app',['ngRoute','ngSanitize'])
 						height :300 - margin.top - margin.bottom
 					};
 
-					var ymax = d3.max(d, function(d) { return +d.frequency});
+					var ymax = Math.max(d3.max(d, function(d) { return +d.frequency}),d3.max(d, function(d) { return + d.baseline_frequency }));
 
 					d3.select(id).select("svg").remove();
 
@@ -768,6 +768,18 @@ angular.module('app',['ngRoute','ngSanitize'])
 	error(function(data, status, headers, config) {
 		// NOOP
 	});
+
+	$scope.addResidentDataItem = function(index) {
+		console.log('add item');
+		console.log(index);
+		$scope.left_bar_chart_data.splice(index,0,{modality:"change this",frequency:"0",baseline_frequency:"change this"});
+	}
+
+	$scope.removeResidentDataItem = function(index) {
+		console.log('remove item');
+		console.log(index);
+		$scope.left_bar_chart_data.splice(index,1);
+	}
 
 	$scope.changePage = function (page_number) {
 		$scope.current_page = page_number;
