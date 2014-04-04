@@ -110,7 +110,7 @@ angular.module('app',['ngRoute','ngSanitize'])
 				draw: function(id,d,options) {
 					var cfg = {
 						margin :{top: 20, right: 20, bottom: 30, left: 40},
-						width : 600 - margin.left - margin.right,
+						width : 550 - margin.left - margin.right,
 						height :300 - margin.top - margin.bottom
 					};
 
@@ -131,7 +131,7 @@ angular.module('app',['ngRoute','ngSanitize'])
 						};
 
 						var x = d3.scale.ordinal()
-			    		.rangeRoundBands([0, cfg.width], .1);
+			    		.rangeRoundBands([0, cfg.width - 80], .1);
 						x.domain(d.map(function(d) { return d.modality; }));
 
 						var y = d3.scale.linear()
@@ -173,7 +173,7 @@ angular.module('app',['ngRoute','ngSanitize'])
 							.attr("y", 3)
 							.attr("dy", "-3.71em")
 							.style("text-anchor","end")
-							.text("Frequency");
+							.text("Number of Exams");
 
 						svg.selectAll(".bar")
 							.data(d)
@@ -219,6 +219,7 @@ angular.module('app',['ngRoute','ngSanitize'])
 							{modality:'DEXA', frequency:10}
 						];
 						*/
+						/*
 						var line = d3.svg.line()
 					    .x(function(d) { return x(d.modality); })
 					    .y(function(d) { return y(d.baseline_frequency); });
@@ -229,11 +230,7 @@ angular.module('app',['ngRoute','ngSanitize'])
 						.style("stroke","black")
 						.style("stroke-width","1")
 						.style("fill","none")
-
-
-						var div = svg.append("div")   
-					    .attr("class", "tooltip")               
-					    .style("opacity", 0);
+						*/
 
 						svg.selectAll("dot")    
 						.data(d)         
@@ -263,6 +260,7 @@ angular.module('app',['ngRoute','ngSanitize'])
 							.style('opacity', 0);
 						});
 
+						/*
 						var text = svg.append("text")
 						.attr("class", "title")
 						.attr("x", 450)
@@ -270,6 +268,7 @@ angular.module('app',['ngRoute','ngSanitize'])
 						.attr("font-size", "12px")
 						.attr("fill", "#404040")
 						.text("Order frequency");
+						*/
 
 						line_tooltip = svg.append('text')
 						.style('opacity', 0)
@@ -289,13 +288,13 @@ angular.module('app',['ngRoute','ngSanitize'])
 						.attr("height", 100)
 						.attr("width", 200)
 						.attr('transform', 'translate(90,20)');
-						var LegendOptions = ["Resident","Baseline"];
+						var LegendOptions = ["Resident","Rotation Goals"];
 						//Create colour squares
 						legend.selectAll('rect')
 						.data(LegendOptions)
 						.enter()
 						.append("rect")
-						.attr("x",w - 125)
+						.attr("x",w - 135)
 						.attr("y", function(d, i){ return i * 20;})
 						.attr("width", 10)
 						.attr("height", 10)
@@ -308,7 +307,7 @@ angular.module('app',['ngRoute','ngSanitize'])
 						.data(LegendOptions)
 						.enter()
 						.append("text")
-						.attr("x",w - 112) 
+						.attr("x",w - 122) 
 						.attr("y", function(d, i){ return i * 20 + 9;})
 						.attr("font-size", "11px")
 						.attr("fill", "#737373")
@@ -773,12 +772,14 @@ angular.module('app',['ngRoute','ngSanitize'])
 		console.log('add item');
 		console.log(index);
 		$scope.left_bar_chart_data.splice(index,0,{modality:"change this",frequency:"0",baseline_frequency:"change this"});
+		$scope.$broadcast('copyData',[]);
 	}
 
 	$scope.removeResidentDataItem = function(index) {
 		console.log('remove item');
 		console.log(index);
 		$scope.left_bar_chart_data.splice(index,1);
+		$scope.$broadcast('copyData',[]);
 	}
 
 	$scope.changePage = function (page_number) {
