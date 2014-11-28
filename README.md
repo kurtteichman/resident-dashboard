@@ -1,5 +1,7 @@
 ## Run Server:
 ``` node server.js ```
+#### NOTE: The resident dashboard has been moved to:
+Updated repo is now @ bit.ly/trovedashboard
 
 #### NOTE: You must be on the Cornell VPN to utilize this web api
 
